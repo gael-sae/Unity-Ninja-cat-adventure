@@ -43,4 +43,6 @@ public class PlatformUpDown : MonoBehaviour
         }
         //direction = new Vector2 1 * speed, platform.velocity.y);
     }
+
+    // position-player += deltatime.position.platform
 }

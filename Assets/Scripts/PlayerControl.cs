@@ -7,20 +7,29 @@ public class PlayerControl : MonoBehaviour
     [SerializeField]
     LayerMask layerMask = default;
  
-    Rigidbody2D body;
+    public Rigidbody2D body;
     BoxCollider2D boxCollider2d;
     PlayerHealth playerHealth;
     Health health;
 
     Vector2 direction;
+    [SerializeField]
+    Vector2 wallHopDirection;
+    [SerializeField]
+    Vector2 wallJumpDirection;
 
     [SerializeField]
-    float speed = 3;
+    float speed = 3f;
 
     [SerializeField]
-    float jumpVelocity = 20f;
+    float jumpVelocity = 6f;
+    [SerializeField]
+    float wallHopForce = 6f;
+    [SerializeField]
+    float wallJumpForce = 10f;
 
     bool facingRight;
+    bool isWall = false;
 
     // Start is called before the first frame update
     void Start()
@@ -35,17 +44,12 @@ public class PlayerControl : MonoBehaviour
         {
             Debug.Log("No Body");
         }
-
         playerHealth = GetComponent<PlayerHealth>();
+        wallHopDirection.Normalize();
+        wallJumpDirection.Normalize();
     }
-    /* private void Awake()
-     {
-         body = gameObject.GetComponent<PlayerControl>();
-     }*/
-
     void Awake()
     { 
-        body = transform.GetComponent<Rigidbody2D>();
         boxCollider2d = transform.GetComponent<BoxCollider2D>();
     }
     void FixedUpdate()
@@ -55,76 +59,55 @@ public class PlayerControl : MonoBehaviour
         Flip(horizontal);
     }
     // Update is called once per frame
-
-
     void Update()
     {
-       //direction = new Vector2(Input.GetAxis("Horizontal"), 0) * speed;
-        /**/
         if (IsGrounded() && Input.GetAxis("Jump") > 0.1f)
-        {   
-
-            body.velocity = Vector2.up * jumpVelocity;
-        }
-
-
-        bool IsGrounded()
         {
-            RaycastHit2D raycastHit2d = Physics2D.BoxCast(boxCollider2d.bounds.center, boxCollider2d.bounds.size, 0f, Vector2.down, 0.1f, layerMask);
-            Debug.Log(raycastHit2d.collider);
-            return raycastHit2d.collider != null;
+                body.velocity = Vector2.up * jumpVelocity;
         }
-
-        /*if (Input.GetKeyDown(KeyCode.A))
+        if (isWall && !IsGrounded())
         {
-            flip
-        }*/
+            if (facingRight)
+            {
+                body.velocity = Vector2.left * wallJumpDirection.x * wallHopDirection.y * wallHopForce;
+            }
+            if (!facingRight)
+            {
+                body.velocity = Vector2.right * wallHopDirection.x * wallJumpDirection.y * wallHopForce;
+            }
+            //Vector2 forcetoAdd = new Vector2(wallHopForce * wallJumpDirection.x, wallHopForce * wallHopDirection.y);
+        }
 
         direction = new Vector2(Input.GetAxis("Horizontal") * speed, body.velocity.y);
-
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            
-        }
-
-        /* if (body.position.y >= -4)
-        {
-            
-            transform.localPosition=body;
-            
-        }*/
-        /* bool setSpikeDynamic = false;
-         if (body.position.x >= -5)
-         {
-             setSpikeDynamic = true;
-         }*/
-
-        /*  if (Input.GetKey(KeyCode.LeftArrow))
-          {
-              body.velocity = new Vector2(-speed, body.velocity.y);
-          }
-          else
-          {
-              if (Input.GetKey(KeyCode.RightArrow))
-              {
-                  body.velocity = new Vector2(+speed, body.velocity.y);
-              }
-              else
-              {
-                  body.velocity = new Vector2(0, body.velocity.y);
-              }
-
-          }*/
     }
-    void OnCollisionEnter2D(Collision2D collision)
+    bool IsGrounded()
+    {
+        RaycastHit2D raycastHit2d = Physics2D.BoxCast(boxCollider2d.bounds.center, boxCollider2d.bounds.size, 0f, Vector2.down, 0.1f, layerMask);
+        Debug.Log(raycastHit2d.collider);
+        return raycastHit2d.collider != null;
+    }
+        void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.tag == "Win")
         {
             Debug.Log("WIN");
-            Destroy(gameObject);
+            Destroy(gameObject); // S'enfuit avec l'objet "win"
+            Destroy(collision.gameObject);
+        }
+        if (collision.gameObject.tag == "Wall")
+        {
+            isWall = true;
+            Debug.Log("Wall");
         }
     }
-
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Wall")
+        {
+            body.velocity = Vector2.up * wallHopDirection.x * wallJumpDirection.y * wallJumpForce;
+            isWall = false;
+        }
+    }
     void Flip(float horizontal)
     {
         if (horizontal > 0 && !facingRight || horizontal < 0 && facingRight)

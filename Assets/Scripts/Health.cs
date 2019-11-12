@@ -12,7 +12,6 @@ public class Health : MonoBehaviour
     public Image[] heart;
     public Sprite fullHeart;
     public Sprite emptyHealth;
-    float currentHealth = 0;
 
     PlayerHealth playerHealth;
     PlayerControl playerControl;
@@ -31,7 +30,7 @@ public class Health : MonoBehaviour
             health = numOfHealths;
         }
        
-        for (int i = 0; i < currentHealth; i++)
+        for (int i = 0; i < heart.Length; i++)
         {
             if (i < health)
             {

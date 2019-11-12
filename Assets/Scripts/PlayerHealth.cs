@@ -6,12 +6,10 @@ public class PlayerHealth : MonoBehaviour
 {
 
     [SerializeField]
-    float maxHealth = 3;
+    int maxHealth = 3;
 
-    float currentHealth = 0;
+    int currentHealth;
     bool Dead = false;
-    PlayerControl playerControl;
-    Health health;
 
     public Transform spawnpoint;
 
